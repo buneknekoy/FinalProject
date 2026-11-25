@@ -1,0 +1,951 @@
+{
+  "info": {
+    "_postman_id": "0f5de317-3442-4bf7-b1c9-5f88c03f8052",
+    "name": "FitConnect API - Lab 03-06 Starter",
+    "description": "FitConnect versioned REST API. Run Auth / Login first. IDs are saved from list/create responses. Duplicate bookings and payments are expected to return 409.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "planId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trainerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "progressId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Login returns a short-lived JWT, saved automatically as token.",
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.accessToken) pm.environment.set('token',j.accessToken); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Member)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Login returns a short-lived JWT, saved automatically as token.",
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"password\": \"{{memberPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.accessToken) pm.environment.set('token',j.accessToken); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/verify"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "1. Membership plans",
+      "item": [
+        {
+          "name": "List plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/membership-plans?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); const a=Array.isArray(j.data)?j.data:(Array.isArray(j)?j:[]); if(a[0]&&a[0].planId!==undefined) pm.environment.set('planId',String(a[0].planId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/membership-plans/{{planId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Create plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/membership-plans",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planName\": \"Student Demo {{$timestamp}}\",\n  \"price\": 900,\n  \"durationMonths\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.planId!==undefined) pm.environment.set('planId',String(j.planId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/membership-plans/{{planId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 950\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "2. Members",
+      "item": [
+        {
+          "name": "List members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/members?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); const a=Array.isArray(j.data)?j.data:(Array.isArray(j)?j:[]); if(a[0]&&a[0].memberId!==undefined) pm.environment.set('memberId',String(a[0].memberId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get member",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/members/{{memberId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Create member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/members",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Taylor\",\n  \"lastName\": \"Sample\",\n  \"email\": \"fitconnect+{{$timestamp}}@example.test\",\n  \"phone\": \"09170000003\",\n  \"planId\": \"{{planId}}\",\n  \"password\": \"{{memberPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.memberId!==undefined) pm.environment.set('memberId',String(j.memberId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/members/{{memberId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"09170000004\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Member bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/members/{{memberId}}/bookings"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "3. Trainers",
+      "item": [
+        {
+          "name": "List trainers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trainers?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); const a=Array.isArray(j.data)?j.data:(Array.isArray(j)?j:[]); if(a[0]&&a[0].trainerId!==undefined) pm.environment.set('trainerId',String(a[0].trainerId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get trainer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trainers/{{trainerId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Create trainer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trainers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Morgan\",\n  \"lastName\": \"Demo\",\n  \"specialization\": \"Mobility\",\n  \"contactNumber\": \"09170000005\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.trainerId!==undefined) pm.environment.set('trainerId',String(j.trainerId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update trainer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trainers/{{trainerId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Mobility and Recovery\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "4. Classes",
+      "item": [
+        {
+          "name": "List classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/classes?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); const a=Array.isArray(j.data)?j.data:(Array.isArray(j)?j:[]); if(a[0]&&a[0].classId!==undefined) pm.environment.set('classId',String(a[0].classId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get class",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/classes/{{classId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Create class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Demo Yoga\",\n  \"schedule\": \"2026-12-10T18:00:00\",\n  \"capacity\": 10,\n  \"trainerId\": \"{{trainerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.classId!==undefined) pm.environment.set('classId',String(j.classId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update class",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classes/{{classId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "5. Bookings and payment",
+      "item": [
+        {
+          "name": "List bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bookings?page=1&limit=20"
+          },
+          "event": []
+        },
+        {
+          "name": "Create booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"classId\": \"{{classId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.bookingId!==undefined) pm.environment.set('bookingId',String(j.bookingId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Expected 409 - duplicate active booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"classId\": \"{{classId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Get booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Create booking payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/payment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountPaid\": 950,\n  \"paymentMethod\": \"Cash\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.paymentId!==undefined) pm.environment.set('paymentId',String(j.paymentId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get booking payment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}/payment"
+          },
+          "event": []
+        },
+        {
+          "name": "Cancel booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Cancelled\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "6. Membership history",
+      "item": [
+        {
+          "name": "List memberships",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/memberships?page=1&limit=20"
+          },
+          "event": []
+        },
+        {
+          "name": "Create membership period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/memberships",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"planId\": \"{{planId}}\",\n  \"startDate\": \"2026-11-25\",\n  \"endDate\": \"2026-12-25\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.membershipId!==undefined) pm.environment.set('membershipId',String(j.membershipId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel membership period",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/memberships/{{membershipId}}/cancel"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "7. Workout tracking",
+      "item": [
+        {
+          "name": "List workouts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/workouts?page=1&limit=20"
+          },
+          "event": []
+        },
+        {
+          "name": "Log workout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/workouts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"workoutDate\": \"2026-11-25\",\n  \"activity\": \"Strength training\",\n  \"durationMinutes\": 45,\n  \"notes\": \"Sample session\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.workoutId!==undefined) pm.environment.set('workoutId',String(j.workoutId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get workout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/workouts/{{workoutId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Update workout",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/workouts/{{workoutId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durationMinutes\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Delete workout",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/workouts/{{workoutId}}"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "8. Progress tracking",
+      "item": [
+        {
+          "name": "List progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/progress?page=1&limit=20"
+          },
+          "event": []
+        },
+        {
+          "name": "Record progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/progress",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"recordedAt\": \"2026-11-25\",\n  \"weightKg\": 68.5,\n  \"bodyFatPercent\": 20,\n  \"notes\": \"Sample check-in\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j=pm.response.json(); if(j.progressId!==undefined) pm.environment.set('progressId',String(j.progressId)); } catch(e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get progress entry",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/progress/{{progressId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Update progress",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/progress/{{progressId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightKg\": 68.2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": []
+        },
+        {
+          "name": "Delete progress entry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/progress/{{progressId}}"
+          },
+          "event": []
+        }
+      ]
+    },
+    {
+      "name": "9. Admin and conflict examples (optional)",
+      "item": [
+        {
+          "name": "Expected 409 - delete paid booking",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Expected 409 - delete class with history",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/classes/{{classId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Expected 409 - delete assigned trainer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/trainers/{{trainerId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Expected 409 - delete referenced plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/membership-plans/{{planId}}"
+          },
+          "event": []
+        },
+        {
+          "name": "Deactivate member (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/members/{{memberId}}"
+          },
+          "event": []
+        }
+      ]
+    }
+  ]
+}
